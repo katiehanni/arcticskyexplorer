@@ -22,6 +22,32 @@
             color: #2c3e50;
             text-align: center;
         }
+        .team-info {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 15px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+        }
+        .team-info h2 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .team-member {
+            margin: 5px 0;
+            color: #34495e;
+        }
+        .dataset-info {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #e8f4f8;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        .dataset-info h3 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
         .vis-container {
             margin: 40px 0;
             padding: 20px;
@@ -54,6 +80,20 @@
 <body>
     <div class="container">
         <h1>Exploratory Visualizations: Arctic Sky Seasonal Changes</h1>
+        
+        <div class="team-info">
+            <h2>Team Members</h2>
+            <div class="team-member">Amrutha Potluri — apotluri@ucsd.edu</div>
+            <div class="team-member">Audrey Chung — auchung@ucsd.edu</div>
+            <div class="team-member">Faline Le — fnle@ucsd.edu</div>
+            <div class="team-member">Katie Hannigan — khannigan@ucsd.edu</div>
+        </div>
+
+        <div class="dataset-info">
+            <h3>Dataset</h3>
+            <p><strong>NASA MODIS (MODerate Resolution Imaging Spectroradiometer)</strong></p>
+            <p>Daily global satellite imagery with multi-spectral bands (Band 1: Red, Band 2: NIR, Band 3: Blue) for color composite visualization. 20+ years of temporal coverage accessible via NASA Worldview/GIBS API.</p>
+        </div>
         
         <!-- Visualization 1: Seasonal Daylight Hours -->
         <div class="vis-container">
