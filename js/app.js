@@ -26,14 +26,6 @@ const metricConfig = {
     suffix: ' h',
     color: '#f6b93b',
     yLabel: 'Daylight duration (hours)'
-  },
-  cloudCover: {
-    label: 'Cloud cover',
-    accessor: d => d.cloudCover,
-    format: d3.format('.0f'),
-    suffix: '%',
-    color: '#6c7a89',
-    yLabel: 'Cloud cover (%)'
   }
 };
 
