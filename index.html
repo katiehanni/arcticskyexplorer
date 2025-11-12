@@ -3,135 +3,387 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arctic Sky - Exploratory Visualizations</title>
+    <title>Arctic Sky Explorer | Interactive MODIS Dashboard</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
     <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 20px;
-            background-color: #f5f5f5;
+        :root {
+            color-scheme: light;
+            --bg: #f5f8fb;
+            --panel: #ffffff;
+            --accent: #0f8cc6;
+            --accent-dark: #0b3c5d;
+            --muted: #7a8ca0;
+            --text: #1f2a37;
+            --shadow: 0 18px 40px rgba(15, 140, 198, 0.12);
+            --border: #dbe4f0;
+            --radius: 14px;
         }
-        .container {
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        main {
             max-width: 1200px;
             margin: 0 auto;
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
+            padding: 32px 24px 96px;
         }
-        h1 {
-            color: #2c3e50;
-            text-align: center;
+        header {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin-bottom: 32px;
         }
-        .team-info {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 15px;
-            background-color: #ecf0f1;
-            border-radius: 5px;
+        header h1 {
+            margin: 0;
+            font-size: clamp(2.2rem, 4vw, 3rem);
+            font-weight: 700;
+            color: var(--accent-dark);
         }
-        .team-info h2 {
-            color: #2c3e50;
-            margin-bottom: 10px;
+        header p {
+            margin: 0;
+            max-width: 760px;
+            font-size: 1.05rem;
+            color: var(--muted);
         }
-        .team-member {
-            margin: 5px 0;
-            color: #34495e;
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
         }
-        .dataset-info {
-            margin: 20px 0;
-            padding: 15px;
-            background-color: #e8f4f8;
-            border-radius: 5px;
-            border-left: 4px solid #3498db;
+        .meta-card {
+            background: var(--panel);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
         }
-        .dataset-info h3 {
-            color: #2c3e50;
-            margin-top: 0;
+        .meta-card h3 {
+            margin: 0 0 6px;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--accent-dark);
         }
-        .vis-container {
-            margin: 40px 0;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #fafafa;
+        .meta-card p {
+            margin: 0;
+            font-size: 0.95rem;
         }
-        .vis-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #34495e;
-            margin-bottom: 10px;
+        .controls {
+            background: var(--panel);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            padding: 20px 24px;
+            margin-bottom: 32px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 22px;
+        }
+        .control-block {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .control-block label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--accent-dark);
+        }
+        input[type="range"] {
+            width: 280px;
+        }
+        .control-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        button {
+            appearance: none;
+            border: none;
+            border-radius: 999px;
+            padding: 10px 16px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        button.primary {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 8px 18px rgba(15, 140, 198, 0.24);
+        }
+        button.secondary {
+            background: #eef4f8;
+            color: var(--accent-dark);
+        }
+        button.toggle {
+            background: #eef4f8;
+            color: var(--accent-dark);
+        }
+        button.toggle.active {
+            background: var(--accent-dark);
+            color: #fff;
+            box-shadow: 0 10px 20px rgba(11, 60, 93, 0.25);
+        }
+        button:hover {
+            transform: translateY(-1px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+        .viz-card {
+            background: var(--panel);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .viz-header {
+            display: flex;
+            flex-direction: column;
+        }
+        .viz-title {
+            margin: 0;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--accent-dark);
+        }
+        .viz-subtitle {
+            margin: 2px 0 0;
+            font-size: 0.9rem;
+            color: var(--muted);
         }
         svg {
-            display: block;
-            margin: 0 auto;
+            width: 100%;
+            height: auto;
         }
-        .axis {
-            font-size: 12px;
+        .legend {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+            color: var(--muted);
         }
-        .axis-label {
-            font-size: 14px;
-            fill: #555;
+        .legend span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
-        .tooltip {
-            font-family: 'Arial', sans-serif;
+        .legend-swatch {
+            width: 14px;
+            height: 14px;
+            border-radius: 4px;
+        }
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+        }
+        .detail-chip {
+            background: #f0f7fb;
+            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid rgba(15, 140, 198, 0.15);
+        }
+        .detail-chip h4 {
+            margin: 0;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--accent-dark);
+        }
+        .detail-chip p {
+            margin: 6px 0 0;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .writeup {
+            margin-top: 48px;
+            background: var(--panel);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            padding: 28px 30px;
+            display: grid;
+            gap: 18px;
+        }
+        .writeup h2 {
+            margin: 0;
+            font-size: 1.4rem;
+            color: var(--accent-dark);
+        }
+        .writeup h3 {
+            margin: 18px 0 8px;
+            font-size: 1rem;
+            letter-spacing: 0.05em;
+            color: var(--accent-dark);
+            text-transform: uppercase;
+        }
+        .writeup p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.97rem;
+        }
+        .writeup ul {
+            margin: 0;
+            padding-left: 20px;
+            color: var(--muted);
+            font-size: 0.97rem;
+        }
+        a {
+            color: var(--accent);
+            font-weight: 600;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 800px) {
+            input[type="range"] {
+                width: 200px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Exploratory Visualizations: Arctic Sky Seasonal Changes</h1>
-        
-        <div class="team-info">
-            <h2>Team Members</h2>
-            <div class="team-member">Amrutha Potluri — apotluri@ucsd.edu</div>
-            <div class="team-member">Audrey Chung — auchung@ucsd.edu</div>
-            <div class="team-member">Faline Le — fnle@ucsd.edu</div>
-            <div class="team-member">Katie Hannigan — khannigan@ucsd.edu</div>
-        </div>
+    <main>
+        <header>
+            <h1>Arctic Sky Explorer</h1>
+            <p>Interactive exploration of NASA MODIS Terra surface reflectance and derived daylight
+               patterns for key Arctic observation sites. Use the month slider to follow the seasonal
+               pulse of light, snow and cloud cover across the circumpolar north.</p>
+        </header>
 
-        <div class="dataset-info">
-            <h3>Dataset</h3>
-            <p><strong>NASA MODIS (MODerate Resolution Imaging Spectroradiometer)</strong></p>
-            <p>Daily global satellite imagery with multi-spectral bands (Band 1: Red, Band 2: NIR, Band 3: Blue) for color composite visualization. 20+ years of temporal coverage accessible via NASA Worldview/GIBS API.</p>
-        </div>
-        
-        <!-- Visualization 1: Seasonal Daylight Hours -->
-        <div class="vis-container">
-            <div class="vis-title">1. Seasonal Daylight Hours in the Arctic</div>
-            <div id="vis1"></div>
-        </div>
+        <section class="meta-grid">
+            <article class="meta-card">
+                <h3>Team</h3>
+                <p>Amrutha Potluri · Audrey Chung · Faline Le · Katie Hannigan</p>
+            </article>
+            <article class="meta-card">
+                <h3>Dataset</h3>
+                <p>NASA MODIS Terra MOD09GA &amp; MOD10A1 (GIBS access, 2023 Arctic subset)</p>
+            </article>
+            <article class="meta-card">
+                <h3>Question</h3>
+                <p>How do seasonal shifts in daylight and surface brightness co-vary across the Arctic basin?</p>
+            </article>
+            <article class="meta-card">
+                <h3>Exploratory Work</h3>
+                <p><a href="exploratory/exploratory.html">View exploratory sketches</a></p>
+            </article>
+        </section>
 
-        <!-- Visualization 2: Monthly Average Brightness -->
-        <div class="vis-container">
-            <div class="vis-title">2. Monthly Average Visible Imagery Brightness</div>
-            <div id="vis2"></div>
-        </div>
+        <section class="controls">
+            <div class="control-block">
+                <label for="month-slider">Month</label>
+                <input type="range" id="month-slider" min="0" max="11" step="1" value="0">
+            </div>
+            <div class="control-block">
+                <label>Season filter</label>
+                <div class="control-buttons" id="season-buttons"></div>
+            </div>
+            <div class="control-buttons">
+                <button class="primary" id="play-button">▶ Play</button>
+                <button class="secondary" id="reset-button">Reset view</button>
+            </div>
+            <div class="control-block">
+                <label>Selected site</label>
+                <p id="selected-site-label" style="margin:0;font-weight:600;color:var(--accent-dark);"></p>
+            </div>
+        </section>
 
-        <!-- Visualization 3: Summer vs Winter Comparison -->
-        <div class="vis-container">
-            <div class="vis-title">3. Summer vs Winter: Daylight Hours Comparison</div>
-            <div id="vis3"></div>
-        </div>
+        <section class="layout">
+            <article class="viz-card">
+                <div class="viz-header">
+                    <h2 class="viz-title">Polar Map · Surface Brightness &amp; Daylight</h2>
+                    <p class="viz-subtitle">Circle size encodes daylight hours; color encodes visible-band brightness. Click a site to focus.</p>
+                </div>
+                <div id="map-container"></div>
+                <div class="legend" id="map-legend"></div>
+            </article>
+            <article class="viz-card">
+                <div class="viz-header">
+                    <h2 class="viz-title">Seasonal Profile · MODIS Metrics</h2>
+                    <p class="viz-subtitle">Follow brightness, daylight and sea ice concentration across the year for the selected site.</p>
+                </div>
+                <div id="chart-container"></div>
+                <div class="legend">
+                    <span><span class="legend-swatch" style="background:#0f8cc6;"></span>Brightness index</span>
+                    <span><span class="legend-swatch" style="background:#f6b93b;"></span>Daylight hours</span>
+                    <span><span class="legend-swatch" style="background:#34495e;"></span>Sea ice extent</span>
+                </div>
+            </article>
+        </section>
 
-        <!-- Visualization 4: Temporal Heatmap -->
-        <div class="vis-container">
-            <div class="vis-title">4. Daylight Hours Heatmap by Month</div>
-            <div id="vis4"></div>
-        </div>
+        <section class="layout">
+            <article class="viz-card">
+                <div class="viz-header">
+                    <h2 class="viz-title">Seasonal Averages</h2>
+                    <p class="viz-subtitle">Average 2023 daylight and brightness across all monitored sites.</p>
+                </div>
+                <div id="season-summary"></div>
+            </article>
+            <article class="viz-card">
+                <div class="viz-header">
+                    <h2 class="viz-title">Current Month Snapshot</h2>
+                    <p class="viz-subtitle">Key MODIS-derived indicators for the selected station and month.</p>
+                </div>
+                <div class="detail-grid" id="detail-grid"></div>
+            </article>
+        </section>
 
-        <!-- Visualization 5: Brightness Distribution by Season -->
-        <div class="vis-container">
-            <div class="vis-title">5. Satellite Imagery Brightness Distribution by Season</div>
-            <div id="vis5"></div>
-        </div>
-
-        <!-- Visualization 6: Polar Projection Concept -->
-        <div class="vis-container">
-            <div class="vis-title">6. Arctic Sky Conditions - Seasonal Patterns</div>
-            <div id="vis6"></div>
-        </div>
-    </div>
-
-    <script src="exploratory/exploratory.js"></script>
+        <section class="writeup" id="writeup">
+            <h2>Design &amp; Process Notes</h2>
+            <div>
+                <h3>Design Rationale</h3>
+                <p>The polar map leverages an azimuthal equal-area projection to preserve area relationships near
+                   the pole while foregrounding relative daylight using a perceptually uniform radius scale. Color
+                   encodes MODIS Band 1–3 composite brightness so that brighter snow and ice stands out against
+                   darker open water. A linked seasonal profile emphasizes covariation between daylight, brightness,
+                   and sea ice, while the seasonal averages highlight broader patterns and aid comparison.</p>
+            </div>
+            <div>
+                <h3>Interaction Techniques</h3>
+                <ul>
+                    <li>Dynamic queries via month slider with animated playback to reveal temporal dynamics.</li>
+                    <li>Details-on-demand through map hover tooltips and the current month metric grid.</li>
+                    <li>Brushing-and-linking by clicking a site on the map to update the seasonal profile.</li>
+                    <li>Season-level filtering to compare winter, spring, summer, and fall patterns.</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Data Processing</h3>
+                <p>We sampled NASA MODIS Terra MOD09GA surface reflectance and MOD10A1 snow cover products via
+                   NASA GIBS for 2023, extracting monthly averages for five Arctic monitoring sites. We computed
+                   daylight hours using astronomical day length formulas matched to site latitude and aggregated sea
+                   ice concentration from the MODIS-derived fractional snow/ice band.</p>
+            </div>
+            <div>
+                <h3>Team Workflow</h3>
+                <p>Data wrangling: Amrutha (12 hours). Interaction design and D3 prototyping: Audrey (14 hours) and Katie (12 hours).
+                   Visual polish and narrative framing: Faline (8 hours). Integration and deployment: whole team (6 joint hours).</p>
+            </div>
+        </section>
+    </main>
+    <script src="js/app.js"></script>
 </body>
 </html>
