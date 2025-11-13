@@ -226,7 +226,8 @@ function buildSeries(metric) {
         monthName: d.monthName,
         season: d.season,
         region: d.region,
-        value: metric.accessor(d)
+        value: metric.accessor(d),
+        source: d
       }))
       .filter(d => d.value !== null && !Number.isNaN(d.value))
       .sort((a, b) => monthOrder.get(a.monthName) - monthOrder.get(b.monthName));
@@ -375,10 +376,21 @@ function updateVisualization() {
           .attr('opacity', 1))
         .on('mouseenter', function(event, d) {
           d3.select(this).transition().duration(150).attr('r', 7).attr('opacity', 1);
+          const brightness = metricConfig.brightnessIndex.format(d.source.brightnessIndex) + metricConfig.brightnessIndex.suffix;
+          const daylight = metricConfig.daylightHours.format(d.source.daylightHours) + metricConfig.daylightHours.suffix;
+          const metricLines = state.metric === 'daylightHours'
+            ? [
+              `<strong>Daylight hours:</strong> ${daylight}`,
+              `Surface brightness index: ${brightness}`
+            ]
+            : [
+              `<strong>Surface brightness index:</strong> ${brightness}`,
+              `Daylight hours: ${daylight}`
+            ];
           showTooltip(event, [
             `<strong>${d.site}</strong> · ${d.region}`,
             `${d.monthName} (${d.season})`,
-            `${metric.label}: ${metric.format(d.value)}${metric.suffix}`
+            ...metricLines
           ]);
         })
         .on('mousemove', (event) => {
