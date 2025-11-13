@@ -358,12 +358,12 @@
                 <h3>Data Processing</h3>
                 <p>
                     We sourced NASA MODIS Terra data (MOD09GA and MOD10A1 products) for the Arctic via NASA GIBS and transformed it 
-                    to highlight seasonal patterns across five monitoring sites. Daily measurements were aggregated into monthly averages to 
-                    reduce noise and make trends in surface brightness and daylight hours more interpretable. Furthermore, surface 
-                    brightness was derived from reflectance values, while daylight hours were calculated using astronomical formulas based on 
-                    latitude. The data was cleaned, structured, and exported into a tidy CSV format suitable for D3 visualization.
-                    These transformations ensure that viewers can easily perceive seasonal dynamics without being distracted by daily variability. 
-                    Challenges included maintaining temporal and spatial consistency and accounting for cloud coverage variations in the satellite imagery.
+                    to highlight seasonal patterns across five monitoring sites. For each station, we cleaned missing or poor-quality scenes, 
+                    converted reflectance bands 1–3 into a composite surface brightness index, calculated daylight hours using astronomical 
+                    day-length formulas based on each site’s latitude, and aggregated the results into monthly averages for 2023. This final 
+                    dataset, combined with site metadata, was exported to a JSON format that powers the visualization. Reducing noise from daily
+                    variability, these transformations allow for seasonal trends in surface brightness and daylight hours to be more interpretable and 
+                    visually coherent for viewers.
                 </p>
             </div>
         
